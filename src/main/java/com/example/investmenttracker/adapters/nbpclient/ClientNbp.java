@@ -59,4 +59,9 @@ public class ClientNbp {
         BigDecimal exchangeRate = getExchangeRate(targetCurrency);
         return amountInPLN.divide(exchangeRate, 2, RoundingMode.HALF_UP);
     }
+
+    public BigDecimal convertToPLN(BigDecimal amount, Currency currency) {
+        BigDecimal exchangeRate = getExchangeRate(currency);
+        return amount.multiply(exchangeRate).setScale(2, RoundingMode.HALF_UP);
+    }
 }

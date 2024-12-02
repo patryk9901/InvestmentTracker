@@ -29,6 +29,8 @@ public class Money {
         return currency;
     }
 
+
+
     public Money add(Money other) {
         checkCurrency(other);
         return new Money(this.amount.add(other.amount), this.currency);
@@ -54,6 +56,11 @@ public class Money {
 
     public Money multiply(BigDecimal factor) {
         return new Money(this.amount.multiply(factor), this.currency);
+    }
+
+    public Money multiply(int factor) {
+        BigDecimal x = new BigDecimal(factor);
+        return multiply(x);
     }
 
     @Override

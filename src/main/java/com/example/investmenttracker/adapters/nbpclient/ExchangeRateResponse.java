@@ -8,5 +8,4 @@ public class ExchangeRateResponse {
     public Rate[] getRates(){
         return rates;
     }
-
 }

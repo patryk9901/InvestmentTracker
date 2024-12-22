@@ -1,6 +1,5 @@
 package com.example.investmenttracker.adapters.nbpclient;
 
-
 import com.google.gson.Gson;
 import org.springframework.stereotype.Component;
 

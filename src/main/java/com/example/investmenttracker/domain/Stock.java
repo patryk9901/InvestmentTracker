@@ -1,20 +1,26 @@
 package com.example.investmenttracker.domain;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.Currency;
 import java.util.Objects;
 
 
-@AllArgsConstructor
 @ToString
 @Getter
 public class Stock {
-    private String ticker;
-    private String exchange;
-    private String name;
-    private String currency;
+    private final String ticker;
+    private final String exchange;
+    private final String name;
+    private final String currency;
+
+    public Stock(String ticker, String exchange, String name, String currency) {
+        this.ticker = ticker;
+        this.exchange = exchange;
+        this.name = name;
+        this.currency = currencyCheck(currency);
+    }
 
     @Override
     public boolean equals(Object object) {
@@ -31,4 +37,13 @@ public class Stock {
     public int hashCode() {
         return Objects.hash(ticker, exchange, name, currency);
     }
+
+    public String currencyCheck(String currencyCode) {
+        if(!currencyCode.equals("PLN")){
+            throw new IllegalArgumentException("Incorrect currency. Only acceptable is PLN");
+        }else{
+            return currencyCode;
+        }
+    }
+
 }

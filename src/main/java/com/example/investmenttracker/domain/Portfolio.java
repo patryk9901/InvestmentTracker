@@ -7,51 +7,47 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Currency;
 import java.util.HashMap;
-import java.util.List;
 
 @Getter
 @AllArgsConstructor
 public class Portfolio {
-    private final HashMap<Stock, XYZ> xyz;
-
+    private final HashMap<Stock, StockPosition> portfolioPositions;
 
     public Money getCurrentValue() {
         Money totalValue = new Money(BigDecimal.valueOf(0), Currency.getInstance("PLN"));
         DefaultNbpClient defaultNbpClient = new DefaultNbpClient();
         ClientNbp clientNbp = new ClientNbp(defaultNbpClient);
 
-        for (Stock stock : this.xyz.keySet()) {
-            XYZ value = this.xyz.get(stock);
+        for (Stock stock : this.portfolioPositions.keySet()) {
+            StockPosition value = this.portfolioPositions.get(stock);
             Money stockMoney = value.getTotalValue();
             if(stockMoney.getCurrency().equals(Currency.getInstance("PLN"))){
                 totalValue = totalValue.add(stockMoney);
             }else{
                 BigDecimal convertedToPLN = clientNbp.convertToPLN(stockMoney.getAmount(),stockMoney.getCurrency());
-                Money moneyToPLN = new Money(convertedToPLN, Currency.getInstance("PLN"));
-                totalValue = totalValue.add(moneyToPLN);
+                Money newMoneyInPLN = new Money(convertedToPLN, Currency.getInstance("PLN"));
+                totalValue = totalValue.add(newMoneyInPLN);
             }
         }
         return totalValue;
     }
 
-    public Portfolio addXYZ(XYZ xyz) {
-        HashMap<Stock, XYZ> newXYZ = new HashMap<>(this.xyz);
+    public Portfolio addStockPosition(StockPosition stockPosition) {
+        HashMap<Stock, StockPosition> newPortfolioPositions = new HashMap<>(this.portfolioPositions);
 
-        if (newXYZ.containsKey(xyz.getStock())) {
-            XYZ existingXYZ = newXYZ.get(xyz.getStock());
-            newXYZ.put(xyz.getStock(),
-                    new XYZ(xyz.getUnitPrice(), existingXYZ.getQuantity() + xyz.getQuantity(), xyz.getStock()));
+        if (newPortfolioPositions.containsKey(stockPosition.getStock())) {
+            newPortfolioPositions.compute(stockPosition.getStock(),
+                    (k, existingStockPosition) -> new StockPosition(stockPosition.getUnitPrice(), existingStockPosition.getQuantity() + stockPosition.getQuantity(), stockPosition.getStock()));
         } else {
-            newXYZ.put(xyz.getStock(), xyz);
+            newPortfolioPositions.put(stockPosition.getStock(), stockPosition);
         }
 
-        return new Portfolio(newXYZ);
+        return new Portfolio(newPortfolioPositions);
     }
 
     public boolean isEmpty(){
-        return this.xyz.isEmpty();
+        return this.portfolioPositions.isEmpty();
     }
 }

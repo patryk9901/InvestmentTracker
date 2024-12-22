@@ -1,18 +1,14 @@
 package com.example.investmenttracker;
 
-import com.example.investmenttracker.adapters.nbpclient.ClientNbp;
 import com.example.investmenttracker.adapters.nbpclient.Money;
 import com.example.investmenttracker.domain.Portfolio;
 import com.example.investmenttracker.domain.Stock;
-import com.example.investmenttracker.domain.XYZ;
+import com.example.investmenttracker.domain.StockPosition;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Currency;
 import java.util.HashMap;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,47 +16,42 @@ public class PortfolioTest {
     @Test
     void shouldCheckCurrentValue() {
         //given
-        HashMap<Stock, XYZ> xyz = new HashMap<>();
+        HashMap<Stock, StockPosition> portfolioElements = new HashMap<>();
 
-        Stock appleStock = new Stock("AAPL", "NASDAQ", "Apple Inc.", "USD");
-        Stock googleStock = new Stock("GOOG", "NASDAQ", "Google LLC", "USD");
+        Stock appleStock = new Stock("AAPL", "NASDAQ", "Apple Inc.", "PLN");
+        Stock googleStock = new Stock("GOOG", "NASDAQ", "Google LLC", "PLN");
 
-        Money applePrice = new Money(BigDecimal.valueOf(10), Currency.getInstance("USD"));
-        Money googlePrice = new Money(BigDecimal.valueOf(20), Currency.getInstance("EUR"));
+        Money applePrice = new Money(BigDecimal.valueOf(10), Currency.getInstance("PLN"));
+        Money googlePrice = new Money(BigDecimal.valueOf(20), Currency.getInstance("PLN"));
 
-        XYZ appleXYZ = new XYZ(applePrice, 1, appleStock);
-        XYZ googleXYZ = new XYZ(googlePrice, 2, googleStock);
+        StockPosition appleStockPosition = new StockPosition(applePrice, 1, appleStock);
+        StockPosition googleStockPosition = new StockPosition(googlePrice, 2, googleStock);
 
-        xyz.put(appleStock, appleXYZ);
-        xyz.put(googleStock, googleXYZ);
+        portfolioElements.put(appleStock, appleStockPosition);
+        portfolioElements.put(googleStock, googleStockPosition);
 
-        ClientNbp mockClientNbp = Mockito.mock(ClientNbp.class);
-        Mockito.when(mockClientNbp.convertToPLN(BigDecimal.valueOf(10), Currency.getInstance("USD")))
-                .thenReturn(BigDecimal.valueOf(42.00));
-        Mockito.when(mockClientNbp.convertToPLN(BigDecimal.valueOf(40), Currency.getInstance("EUR")))
-                .thenReturn(BigDecimal.valueOf(84.00));
-        Portfolio portfolio = new Portfolio(xyz);
+        Portfolio portfolio = new Portfolio(portfolioElements);
 
         //when
         Money result = portfolio.getCurrentValue();
         //then
-        assertThat(result).isEqualTo(new Money(BigDecimal.valueOf(212.52), Currency.getInstance("PLN")));
+        assertThat(result).isEqualTo(new Money(BigDecimal.valueOf(50.00), Currency.getInstance("PLN")));
     }
 
     @Test
-    void shouldAddNewXYZ() {
+    void shouldAddNewStockPosition() {
         //given
-        HashMap<Stock, XYZ> xyz = new HashMap<>();
+        HashMap<Stock, StockPosition> portfolioElements = new HashMap<>();
 
-        Stock appleStock = new Stock("AAPL", "NASDAQ", "Apple Inc.", "USD");
-        Money applePrice = new Money(BigDecimal.valueOf(10), Currency.getInstance("USD"));
+        Stock appleStock = new Stock("AAPL", "NASDAQ", "Apple Inc.", "PLN");
+        Money applePrice = new Money(BigDecimal.valueOf(10), Currency.getInstance("PLN"));
 
-        XYZ appleXYZ = new XYZ(applePrice, 1, appleStock);
+        StockPosition appleStockPosition = new StockPosition(applePrice, 1, appleStock);
 
-        Portfolio portfolio = new Portfolio(xyz);
+        Portfolio portfolio = new Portfolio(portfolioElements);
 
         //when
-        Portfolio updatedPortfolio = portfolio.addXYZ(appleXYZ);
+        Portfolio updatedPortfolio = portfolio.addStockPosition(appleStockPosition);
 
         //then
         assertThat(updatedPortfolio.isEmpty()).isFalse();
@@ -69,20 +60,20 @@ public class PortfolioTest {
     @Test
     void shouldIncreaseQuantityWhenStockExists() {
         //given
-        HashMap<Stock, XYZ> xyz = new HashMap<>();
+        HashMap<Stock, StockPosition> portfolioPositions = new HashMap<>();
 
-        Stock appleStock = new Stock("AAPL", "NASDAQ", "Apple Inc.", "USD");
-        Money applePrice = new Money(BigDecimal.valueOf(10), Currency.getInstance("USD"));
+        Stock appleStock = new Stock("AAPL", "NASDAQ", "Apple Inc.", "PLN");
+        Money applePrice = new Money(BigDecimal.valueOf(10), Currency.getInstance("PLN"));
 
-        XYZ appleXYZ = new XYZ(applePrice, 1, appleStock);
-        xyz.put(appleStock, appleXYZ);
-        Portfolio portfolio = new Portfolio(xyz);
+        StockPosition appleStockPosition = new StockPosition(applePrice, 1, appleStock);
+        portfolioPositions.put(appleStock, appleStockPosition);
+        Portfolio portfolio = new Portfolio(portfolioPositions);
 
         //when
-        Portfolio updatedPortfolio = portfolio.addXYZ(appleXYZ);
+        Portfolio updatedPortfolio = portfolio.addStockPosition(appleStockPosition);
 
         //then
-        XYZ updatedAppleXYZ = updatedPortfolio.getXyz().get(appleStock);
-        assertThat(updatedAppleXYZ.getQuantity()).isEqualTo(2);
+        StockPosition updatedAppleStockPosition = updatedPortfolio.getPortfolioPositions().get(appleStock);
+        assertThat(updatedAppleStockPosition.getQuantity()).isEqualTo(2);
     }
 }

@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class XYZ {
+public class StockPosition {
     private final Money unitPrice;
     private final int quantity;
     private final Stock stock;

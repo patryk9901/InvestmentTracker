@@ -22,30 +22,19 @@ class BondTest {
     @Test
     void shouldCalculateCurrentValue() {
         //given
-        HashMap<Pair<Integer, Integer>, BigDecimal> cache = new HashMap<>();
-        cache.put(Pair.of(2021, 10), BigDecimal.valueOf(0.059));
-        cache.put(Pair.of(2022, 10), BigDecimal.valueOf(0.172));
-        cache.put(Pair.of(2023, 10), BigDecimal.valueOf(0.082));
-        cache.put(Pair.of(2024, 10), BigDecimal.valueOf(0.049));
-
-        CpiResponse cpiResponse = new CpiResponse();
-        ConsumerPriceIndex inMemoryCPI = new InMemoryCPI(cache);
-
-        Money unitPrice = new Money(BigDecimal.valueOf(100), Currency.getInstance("PLN"));
+        BondProvider inMemoryBondProvider = InMemoryBondProvider.defaultBondProvider();
+        ConsumerPriceIndex inMemoryCPI = InMemoryCPI.defaultInMemoryCPI();
         BigDecimal amountOfBonds = BigDecimal.valueOf(10);
 
         LocalDate purchaseDate = LocalDate.of(2020, 11, 1);
 
-        BigDecimal firstYearInterest = BigDecimal.valueOf(0.017);
-        BigDecimal followingYearsInterestMargin = BigDecimal.valueOf(0.01);
         ZonedDateTime zdt = ZonedDateTime.of(2024, 12, 20, 15, 30, 0, 0, ZoneOffset.UTC);
         Clock clock = Clock.fixed(zdt.toInstant(),zdt.getZone());
 
-        Bond bond = new Bond("EDO1130", unitPrice, amountOfBonds, purchaseDate, firstYearInterest, followingYearsInterestMargin, inMemoryCPI, BigDecimal.valueOf(3),clock);
-
+        Bond bond = new Bond(inMemoryBondProvider.getBondSeries("EDO1130"),amountOfBonds, purchaseDate);
 
         //when
-        Money result = bond.getCurrentValue();
+        Money result = bond.getCurrentValue(clock,inMemoryCPI);
 
 
         //then
@@ -56,29 +45,20 @@ class BondTest {
     @Test
     void shouldCalculateEarlyRedemptionValueForBondBought4YearsAgo() {
         //given
-        HashMap<Pair<Integer, Integer>, BigDecimal> cache = new HashMap<>();
-        cache.put(Pair.of(2021, 10), BigDecimal.valueOf(0.059));
-        cache.put(Pair.of(2022, 10), BigDecimal.valueOf(0.172));
-        cache.put(Pair.of(2023, 10), BigDecimal.valueOf(0.082));
-        cache.put(Pair.of(2024, 10), BigDecimal.valueOf(0.049));
+        BondProvider inMemoryBondProvider = InMemoryBondProvider.defaultBondProvider();
+        ConsumerPriceIndex inMemoryCPI = InMemoryCPI.defaultInMemoryCPI();
 
-        CpiResponse cpiResponse = new CpiResponse();
-        ConsumerPriceIndex inMemoryCPI = new InMemoryCPI(cache);
-
-        Money unitPrice = new Money(BigDecimal.valueOf(100), Currency.getInstance("PLN"));
         BigDecimal amountOfBonds = BigDecimal.valueOf(10);
 
         LocalDate purchaseDate = LocalDate.of(2020, 11, 1);
 
-        BigDecimal firstYearInterest = BigDecimal.valueOf(0.017);
-        BigDecimal followingYearsInterestMargin = BigDecimal.valueOf(0.01);
         ZonedDateTime zdt = ZonedDateTime.of(2024, 12, 20, 15, 30, 0, 0, ZoneOffset.UTC);
         Clock clock = Clock.fixed(zdt.toInstant(),zdt.getZone());
 
-        Bond bond = new Bond("EDO1130", unitPrice, amountOfBonds, purchaseDate, firstYearInterest, followingYearsInterestMargin, inMemoryCPI, BigDecimal.valueOf(3),clock);
+        Bond bond = new Bond(inMemoryBondProvider.getBondSeries("EDO1130"),amountOfBonds, purchaseDate);
 
         //when
-        Money result = bond.earlyRedemptionValue();
+        Money result = bond.earlyRedemptionValue(clock,inMemoryCPI);
 
 
         //then
@@ -89,23 +69,20 @@ class BondTest {
     @Test
     void shouldCalculateEarlyRedemptionValueForBondBoughtAfterOneYear() {
         //given
+        BondProvider inMemoryBondProvider = InMemoryBondProvider.defaultBondProvider();
         HashMap<Pair<Integer, Integer>, BigDecimal> cache = new HashMap<>();
         ConsumerPriceIndex inMemoryCPI = new InMemoryCPI(cache);
 
-        Money unitPrice = new Money(BigDecimal.valueOf(100), Currency.getInstance("PLN"));
         BigDecimal amountOfBonds = BigDecimal.valueOf(10);
 
         LocalDate purchaseDate = LocalDate.of(2020, 11, 1);
 
-        BigDecimal firstYearInterest = BigDecimal.valueOf(0.0655);
-        BigDecimal followingYearsInterestMargin = BigDecimal.valueOf(0.01);
         ZonedDateTime zdt = ZonedDateTime.of(2021, 5, 1, 15, 30, 0, 0, ZoneOffset.UTC);
         Clock clock = Clock.fixed(zdt.toInstant(),zdt.getZone());
 
-        Bond bond = new Bond("EDO1130", unitPrice, amountOfBonds, purchaseDate, firstYearInterest, followingYearsInterestMargin, inMemoryCPI, BigDecimal.valueOf(3),clock);
-
+        Bond bond = new Bond(inMemoryBondProvider.getBondSeries("EDO1130"),amountOfBonds, purchaseDate);
         //when
-        Money result = bond.earlyRedemptionValue();
+        Money result = bond.earlyRedemptionValue(clock,inMemoryCPI);
 
 
         //then

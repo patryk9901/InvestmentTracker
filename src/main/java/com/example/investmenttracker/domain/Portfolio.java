@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Currency;
 import java.util.HashMap;
 
@@ -14,6 +15,7 @@ import java.util.HashMap;
 @AllArgsConstructor
 public class Portfolio {
     private final HashMap<Stock, StockPosition> portfolioPositions;
+//    private final HashMap<LocalDate, Bond> portfolioBonds;
 
     public Money getCurrentValue() {
         Money totalValue = new Money(BigDecimal.valueOf(0), Currency.getInstance("PLN"));

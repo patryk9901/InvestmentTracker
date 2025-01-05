@@ -15,20 +15,14 @@ import java.util.List;
 
 @AllArgsConstructor
 public class Bond {
-    private final String series;
-    private final Money unitPrice;
+    private BondSeries bondSeries;
     private final BigDecimal amountOfBonds;
     private final LocalDate purchaseDate;
-    private final BigDecimal firstYearInterest;
-    private final BigDecimal followingYearsInterestMargin;
-    private final ConsumerPriceIndex cpiCalculator;
-    private final BigDecimal earlyRedemptionPrice;
-    private final Clock clock;
 
-    public Money getCurrentValue() {
-        BigDecimal currentValue = unitPrice.getAmount();
+    public Money getCurrentValue(Clock clock, ConsumerPriceIndex cpiCalculator) {
+        BigDecimal currentValue = bondSeries.unitPrice.getAmount();
 
-        currentValue = currentValue.add(currentValue.multiply(firstYearInterest));
+        currentValue = currentValue.add(currentValue.multiply(bondSeries.firstYearInterest));
 
         int emissionYear = purchaseDate.getYear();
         int currentYear = LocalDate.now(clock).getYear();
@@ -41,7 +35,7 @@ public class Bond {
             else if(cpiValue.compareTo(BigDecimal.ZERO) < 0) {
                 cpiValue = BigDecimal.ZERO;
             }
-            BigDecimal interestRate = cpiValue.add(followingYearsInterestMargin);
+            BigDecimal interestRate = cpiValue.add(bondSeries.followingYearsInterestMargin);
             BigDecimal interestValue = currentValue.multiply(interestRate);
             currentValue = currentValue.add(interestValue);
         }
@@ -51,11 +45,11 @@ public class Bond {
         return new Money(currentValue.setScale(2, RoundingMode.HALF_UP), Currency.getInstance("PLN"));
     }
 
-    public Money earlyRedemptionValue() {
+    public Money earlyRedemptionValue(Clock clock, ConsumerPriceIndex cpiCalculator) {
         BigDecimal currentValue;
-        BigDecimal n = unitPrice.getAmount();
+        BigDecimal n = bondSeries.unitPrice.getAmount();
         BigDecimal a = BigDecimal.valueOf(ChronoUnit.DAYS.between(purchaseDate, LocalDate.now(clock)));
-        BigDecimal r = firstYearInterest;
+        BigDecimal r = bondSeries.firstYearInterest;
 
 
         int emissionYear = purchaseDate.getYear();
@@ -69,9 +63,9 @@ public class Bond {
         //TODO rok rozliczenia obligacji = 365dni - wrócić i uwzględnić rok przestępny oraz "ACT"
         if (a.compareTo(BigDecimal.valueOf(365)) <= 0) {
             BigDecimal x = r.multiply(a).divide(act, 6, RoundingMode.HALF_UP).add(BigDecimal.ONE);
-            currentValue = n.multiply(x).subtract(earlyRedemptionPrice);
-            if (currentValue.compareTo(unitPrice.getAmount()) > 0) {
-                BigDecimal profit = currentValue.subtract(unitPrice.getAmount());
+            currentValue = n.multiply(x).subtract(bondSeries.earlyRedemptionPrice);
+            if (currentValue.compareTo(bondSeries.unitPrice.getAmount()) > 0) {
+                BigDecimal profit = currentValue.subtract(bondSeries.unitPrice.getAmount());
                 currentValue = deductingBelkaTax(profit);
             } else {
                 currentValue = BigDecimal.ZERO;
@@ -81,14 +75,14 @@ public class Bond {
 
         else {
             List<BigDecimal> followingYearsR = new ArrayList<>();
-            followingYearsR.add(firstYearInterest);
+            followingYearsR.add(bondSeries.firstYearInterest);
 
             for (int year = emissionYear + 1; year <= currentYear; year++) {
                 BigDecimal cpiValue = cpiCalculator.fromLast12Months(year, purchaseDate.getMonthValue() - 1);
                 if (cpiValue == null) {
                     break;
                 }
-                BigDecimal interestRate = cpiValue.add(followingYearsInterestMargin);
+                BigDecimal interestRate = cpiValue.add(bondSeries.followingYearsInterestMargin);
                 followingYearsR.add(interestRate);
             }
 
@@ -105,10 +99,10 @@ public class Bond {
 
             BigDecimal x = r.multiply(a).divide(act, 6, RoundingMode.HALF_UP).add(BigDecimal.ONE);
 
-            currentValue = n.multiply(x).multiply(allRsPlus1value).subtract(earlyRedemptionPrice);
+            currentValue = n.multiply(x).multiply(allRsPlus1value).subtract(bondSeries.earlyRedemptionPrice);
 
-            if (currentValue.compareTo(unitPrice.getAmount()) > 0) {
-                BigDecimal profit = currentValue.subtract(unitPrice.getAmount());
+            if (currentValue.compareTo(bondSeries.unitPrice.getAmount()) > 0) {
+                BigDecimal profit = currentValue.subtract(bondSeries.unitPrice.getAmount());
                 currentValue = deductingBelkaTax(profit);
             } else {
                 currentValue = BigDecimal.ZERO;

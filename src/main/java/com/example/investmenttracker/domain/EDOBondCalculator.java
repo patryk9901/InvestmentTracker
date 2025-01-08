@@ -1,9 +1,11 @@
+package com.example.investmenttracker.domain;
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-public class test {
+public class EDOBondCalculator {
     private static final BigDecimal HUNDRED = new BigDecimal("100.00");
     private static final BigDecimal PENALTY = new BigDecimal("2.00");
     private static final int SCALE = 2;

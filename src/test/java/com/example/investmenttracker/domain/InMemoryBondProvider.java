@@ -21,8 +21,10 @@ public class InMemoryBondProvider implements BondProvider {
     public static BondProvider defaultBondProvider() {
         HashMap<String, BondSeries> bonds = new HashMap<>();
         Money money = new Money(BigDecimal.valueOf(100), Currency.getInstance("PLN"));
-        BondSeries bondSeries = new BondSeries("EDO1130", money, BigDecimal.valueOf(0.017), BigDecimal.valueOf(0.01), BigDecimal.valueOf(3));
+        BondSeries bondSeries = new BondSeries("EDO1130", money, BigDecimal.valueOf(0.017), BigDecimal.valueOf(0.01), new Money(BigDecimal.valueOf(3),Currency.getInstance("PLN")));
+        BondSeries bondSeriesEditedInterest = new BondSeries("EDO1130EditedInterest", money, BigDecimal.valueOf(-1), BigDecimal.valueOf(0.01), new Money(BigDecimal.valueOf(3),Currency.getInstance("PLN")));
         bonds.put("EDO1130", bondSeries);
+        bonds.put("EDO1130EditedInterest", bondSeriesEditedInterest);
         return new InMemoryBondProvider(bonds);
     }
 }

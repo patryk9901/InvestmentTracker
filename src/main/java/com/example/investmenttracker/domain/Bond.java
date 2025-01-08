@@ -9,116 +9,82 @@ import java.math.RoundingMode;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Currency;
-import java.util.List;
+import java.util.*;
 
 @AllArgsConstructor
 public class Bond {
     private BondSeries bondSeries;
-    private final BigDecimal amountOfBonds;
     private final LocalDate purchaseDate;
 
     public Money getCurrentValue(Clock clock, ConsumerPriceIndex cpiCalculator) {
-        BigDecimal currentValue = bondSeries.unitPrice.getAmount();
+        if (ChronoUnit.DAYS.between(purchaseDate, LocalDate.now(clock)) <= 7) {
+            throw new IllegalArgumentException("Przedterminowy wykup możliwy po 7 dniach od zakupu");
+        }
+        int currentPeriod = getCurrentPeriod(clock);
+        if (currentPeriod < 0 || currentPeriod >= 10) {
+            throw new IllegalArgumentException("Data poza okresem ważności obligacji");
+        }
 
-        currentValue = currentValue.add(currentValue.multiply(bondSeries.firstYearInterest));
+        BigDecimal result = calculateValue(currentPeriod, cpiCalculator, clock);
 
-        int emissionYear = purchaseDate.getYear();
-        int currentYear = LocalDate.now(clock).getYear();
+        if (result.compareTo(bondSeries.unitPrice.getAmount()) < 0) {
+            return bondSeries.unitPrice;
+        }
+        return new Money(result, Currency.getInstance("PLN"));
+    }
 
-        for (int year = emissionYear + 1; year <= currentYear; year++) {
+    public Money earlyRedemptionValue(Clock clock, ConsumerPriceIndex cpiCalculator) {
+        Money valueOfBond = getCurrentValue(clock, cpiCalculator);
+        Money interest = valueOfBond.subtract(bondSeries.unitPrice);
+
+
+        if(interest.compareTo(bondSeries.earlyRedemptionPrice) < 0) {
+            return bondSeries.unitPrice;
+        }
+        interest = interest.subtract(bondSeries.earlyRedemptionPrice);
+        return bondSeries.unitPrice.add(interest);
+    }
+
+    private BigDecimal calculateValue(int currentPeriod, ConsumerPriceIndex cpiCalculator, Clock clock) {
+        LocalDate periodStartDate = purchaseDate.plusYears(currentPeriod);
+        long daysInPeriod = getDaysInPeriod(periodStartDate);
+        long daysFromPeriodStart = ChronoUnit.DAYS.between(periodStartDate, LocalDate.now(clock));
+
+        List<BigDecimal> interestRates = new ArrayList<>();
+        interestRates.add(bondSeries.firstYearInterest);
+
+        for (int year = purchaseDate.getYear() + 1; year <= LocalDate.now(clock).getYear(); year++) {
             BigDecimal cpiValue = cpiCalculator.fromLast12Months(year, purchaseDate.getMonthValue() - 1);
             if (cpiValue == null) {
                 break;
             }
-            else if(cpiValue.compareTo(BigDecimal.ZERO) < 0) {
-                cpiValue = BigDecimal.ZERO;
-            }
             BigDecimal interestRate = cpiValue.add(bondSeries.followingYearsInterestMargin);
-            BigDecimal interestValue = currentValue.multiply(interestRate);
-            currentValue = currentValue.add(interestValue);
+            interestRates.add(interestRate);
         }
 
-        currentValue = calculateForAllBonds(currentValue);
+        BigDecimal value = bondSeries.unitPrice.getAmount();
 
-        return new Money(currentValue.setScale(2, RoundingMode.HALF_UP), Currency.getInstance("PLN"));
-    }
-
-    public Money earlyRedemptionValue(Clock clock, ConsumerPriceIndex cpiCalculator) {
-        BigDecimal currentValue;
-        BigDecimal n = bondSeries.unitPrice.getAmount();
-        BigDecimal a = BigDecimal.valueOf(ChronoUnit.DAYS.between(purchaseDate, LocalDate.now(clock)));
-        BigDecimal r = bondSeries.firstYearInterest;
-
-
-        int emissionYear = purchaseDate.getYear();
-        int currentYear = LocalDate.now(clock).getYear();
-
-        BigDecimal act = BigDecimal.valueOf(365);
-//        if ((emissionYear % 4 == 0 && emissionYear % 100 != 0) || emissionYear % 400 == 0) {
-//            act = BigDecimal.valueOf(366);
-//        }
-
-        //TODO rok rozliczenia obligacji = 365dni - wrócić i uwzględnić rok przestępny oraz "ACT"
-        if (a.compareTo(BigDecimal.valueOf(365)) <= 0) {
-            BigDecimal x = r.multiply(a).divide(act, 6, RoundingMode.HALF_UP).add(BigDecimal.ONE);
-            currentValue = n.multiply(x).subtract(bondSeries.earlyRedemptionPrice);
-            if (currentValue.compareTo(bondSeries.unitPrice.getAmount()) > 0) {
-                BigDecimal profit = currentValue.subtract(bondSeries.unitPrice.getAmount());
-                currentValue = deductingBelkaTax(profit);
-            } else {
-                currentValue = BigDecimal.ZERO;
-            }
-            currentValue = calculateForAllBonds(currentValue);
+        for (int i = 0; i < currentPeriod; i++) {
+            value = value.multiply(BigDecimal.ONE.add(interestRates.get(i)));
         }
 
-        else {
-            List<BigDecimal> followingYearsR = new ArrayList<>();
-            followingYearsR.add(bondSeries.firstYearInterest);
-
-            for (int year = emissionYear + 1; year <= currentYear; year++) {
-                BigDecimal cpiValue = cpiCalculator.fromLast12Months(year, purchaseDate.getMonthValue() - 1);
-                if (cpiValue == null) {
-                    break;
-                }
-                BigDecimal interestRate = cpiValue.add(bondSeries.followingYearsInterestMargin);
-                followingYearsR.add(interestRate);
-            }
-
-            BigDecimal allRsPlus1value = BigDecimal.ONE;
-
-            int i = 0;
-            for (int year = emissionYear; year <= currentYear -1; year++) {
-                r = followingYearsR.get(i);
-                BigDecimal rPlus1value = r.add(BigDecimal.ONE);
-                allRsPlus1value = allRsPlus1value.multiply(rPlus1value);
-                i++;
-            }
-            r = followingYearsR.getLast();
-
-            BigDecimal x = r.multiply(a).divide(act, 6, RoundingMode.HALF_UP).add(BigDecimal.ONE);
-
-            currentValue = n.multiply(x).multiply(allRsPlus1value).subtract(bondSeries.earlyRedemptionPrice);
-
-            if (currentValue.compareTo(bondSeries.unitPrice.getAmount()) > 0) {
-                BigDecimal profit = currentValue.subtract(bondSeries.unitPrice.getAmount());
-                currentValue = deductingBelkaTax(profit);
-            } else {
-                currentValue = BigDecimal.ZERO;
-            }
-            currentValue = calculateForAllBonds(currentValue);
+        if (daysFromPeriodStart > 0) {
+            BigDecimal partialRate = interestRates.get(currentPeriod)
+                    .multiply(new BigDecimal(daysFromPeriodStart))
+                    .divide(new BigDecimal(daysInPeriod), 6, RoundingMode.HALF_UP);
+            value = value.multiply(BigDecimal.ONE.add(partialRate));
         }
-        return new Money(currentValue, Currency.getInstance("PLN"));
+
+        return value.setScale(6, RoundingMode.HALF_UP);
     }
 
-
-    public BigDecimal calculateForAllBonds(BigDecimal currentValue) {
-        return currentValue.multiply(amountOfBonds);
+    private int getCurrentPeriod(Clock clock) {
+        long daysBetween = ChronoUnit.DAYS.between(purchaseDate, LocalDate.now(clock));
+        return (int) (daysBetween / 365);
     }
 
-    public BigDecimal deductingBelkaTax(BigDecimal currentValue) {
-        return currentValue.multiply(BigDecimal.valueOf(0.81));
+    private long getDaysInPeriod(LocalDate periodStartDate) {
+        LocalDate periodEndDate = periodStartDate.plusYears(1);
+        return ChronoUnit.DAYS.between(periodStartDate, periodEndDate);
     }
-
 }

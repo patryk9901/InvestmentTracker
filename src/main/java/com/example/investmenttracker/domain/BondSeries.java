@@ -11,5 +11,5 @@ public class BondSeries {
      final Money unitPrice;
      final BigDecimal firstYearInterest;
      final BigDecimal followingYearsInterestMargin;
-     final BigDecimal earlyRedemptionPrice;
+     final Money earlyRedemptionPrice;
 }

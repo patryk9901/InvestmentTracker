@@ -20,27 +20,86 @@ import static org.junit.jupiter.api.Assertions.*;
 class BondTest {
 
     @Test
-    void shouldCalculateCurrentValue() {
-        //given
+    void shouldCalculateCurrentValue(){
         BondProvider inMemoryBondProvider = InMemoryBondProvider.defaultBondProvider();
         ConsumerPriceIndex inMemoryCPI = InMemoryCPI.defaultInMemoryCPI();
-        BigDecimal amountOfBonds = BigDecimal.valueOf(10);
 
-        LocalDate purchaseDate = LocalDate.of(2020, 11, 1);
+        LocalDate purchaseDate = LocalDate.of(2020, 11, 9);
 
-        ZonedDateTime zdt = ZonedDateTime.of(2024, 12, 20, 15, 30, 0, 0, ZoneOffset.UTC);
+        ZonedDateTime zdt = ZonedDateTime.of(2025, 1, 8, 15, 30, 0, 0, ZoneOffset.UTC);
         Clock clock = Clock.fixed(zdt.toInstant(),zdt.getZone());
 
-        Bond bond = new Bond(inMemoryBondProvider.getBondSeries("EDO1130"),amountOfBonds, purchaseDate);
+        Bond bond = new Bond(inMemoryBondProvider.getBondSeries("EDO1130"), purchaseDate);
 
         //when
         Money result = bond.getCurrentValue(clock,inMemoryCPI);
 
 
         //then
-        Money expected = new Money(BigDecimal.valueOf(1486.05), Currency.getInstance("PLN"));
+        Money expected = new Money(BigDecimal.valueOf(141.69), Currency.getInstance("PLN"));
         assertEquals(expected, result);
     }
+
+    @Test
+    void shouldThrowExceptionWhenCurrentPeriodIsOutOfBorders(){
+        BondProvider inMemoryBondProvider = InMemoryBondProvider.defaultBondProvider();
+        ConsumerPriceIndex inMemoryCPI = InMemoryCPI.defaultInMemoryCPI();
+
+        LocalDate purchaseDate = LocalDate.of(2020, 11, 9);
+
+        ZonedDateTime zdt = ZonedDateTime.of(2031, 11, 9, 15, 30, 0, 0, ZoneOffset.UTC);
+        Clock clock = Clock.fixed(zdt.toInstant(),zdt.getZone());
+
+        Bond bond = new Bond(inMemoryBondProvider.getBondSeries("EDO1130"), purchaseDate);
+
+        // When & Then
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            bond.getCurrentValue(clock, inMemoryCPI);
+        });
+        assertEquals("Data poza okresem ważności obligacji", exception.getMessage());
+    }
+
+    @Test
+    void shouldNotAllowPurchaseBeforeOneWeekHasPassed(){
+        BondProvider inMemoryBondProvider = InMemoryBondProvider.defaultBondProvider();
+        ConsumerPriceIndex inMemoryCPI = InMemoryCPI.defaultInMemoryCPI();
+
+        LocalDate purchaseDate = LocalDate.of(2020, 11, 9);
+
+        ZonedDateTime zdt = ZonedDateTime.of(2020, 11, 11, 15, 30, 0, 0, ZoneOffset.UTC);
+        Clock clock = Clock.fixed(zdt.toInstant(),zdt.getZone());
+
+        Bond bond = new Bond(inMemoryBondProvider.getBondSeries("EDO1130"), purchaseDate);
+
+        // When & Then
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            bond.getCurrentValue(clock, inMemoryCPI);
+        });
+
+        assertEquals("Przedterminowy wykup możliwy po 7 dniach od zakupu", exception.getMessage());
+    }
+
+    @Test
+    void shouldReturnUnitPriceWhenResultIsLowerThanUnitPrice(){
+        BondProvider inMemoryBondProvider = InMemoryBondProvider.defaultBondProvider();
+        ConsumerPriceIndex inMemoryCPI = InMemoryCPI.defaultInMemoryCPI();
+
+        LocalDate purchaseDate = LocalDate.of(2020, 11, 9);
+
+        ZonedDateTime zdt = ZonedDateTime.of(2020, 11, 17, 15, 30, 0, 0, ZoneOffset.UTC);
+        Clock clock = Clock.fixed(zdt.toInstant(),zdt.getZone());
+
+        Bond bond = new Bond(inMemoryBondProvider.getBondSeries("EDO1130EditedInterest"), purchaseDate);
+
+        //when
+        Money result = bond.getCurrentValue(clock,inMemoryCPI);
+
+
+        //then
+        Money expected = new Money(BigDecimal.valueOf(100.0), Currency.getInstance("PLN"));
+        assertEquals(expected, result);
+    }
+
 
     @Test
     void shouldCalculateEarlyRedemptionValueForBondBought4YearsAgo() {
@@ -48,21 +107,19 @@ class BondTest {
         BondProvider inMemoryBondProvider = InMemoryBondProvider.defaultBondProvider();
         ConsumerPriceIndex inMemoryCPI = InMemoryCPI.defaultInMemoryCPI();
 
-        BigDecimal amountOfBonds = BigDecimal.valueOf(10);
+        LocalDate purchaseDate = LocalDate.of(2020, 11, 9);
 
-        LocalDate purchaseDate = LocalDate.of(2020, 11, 1);
-
-        ZonedDateTime zdt = ZonedDateTime.of(2024, 12, 20, 15, 30, 0, 0, ZoneOffset.UTC);
+        ZonedDateTime zdt = ZonedDateTime.of(2024, 11, 9, 15, 30, 0, 0, ZoneOffset.UTC);
         Clock clock = Clock.fixed(zdt.toInstant(),zdt.getZone());
 
-        Bond bond = new Bond(inMemoryBondProvider.getBondSeries("EDO1130"),amountOfBonds, purchaseDate);
+        Bond bond = new Bond(inMemoryBondProvider.getBondSeries("EDO1130"), purchaseDate);
 
         //when
         Money result = bond.earlyRedemptionValue(clock,inMemoryCPI);
 
 
         //then
-        Money expected = new Money(BigDecimal.valueOf(0), Currency.getInstance("PLN"));
+        Money expected = new Money(BigDecimal.valueOf(137.33), Currency.getInstance("PLN"));
         assertEquals(expected, result);
     }
 
@@ -75,18 +132,18 @@ class BondTest {
 
         BigDecimal amountOfBonds = BigDecimal.valueOf(10);
 
-        LocalDate purchaseDate = LocalDate.of(2020, 11, 1);
+        LocalDate purchaseDate = LocalDate.of(2020, 11, 9);
 
-        ZonedDateTime zdt = ZonedDateTime.of(2021, 5, 1, 15, 30, 0, 0, ZoneOffset.UTC);
+        ZonedDateTime zdt = ZonedDateTime.of(2021, 11, 9, 15, 30, 0, 0, ZoneOffset.UTC);
         Clock clock = Clock.fixed(zdt.toInstant(),zdt.getZone());
 
-        Bond bond = new Bond(inMemoryBondProvider.getBondSeries("EDO1130"),amountOfBonds, purchaseDate);
+        Bond bond = new Bond(inMemoryBondProvider.getBondSeries("EDO1130"), purchaseDate);
         //when
         Money result = bond.earlyRedemptionValue(clock,inMemoryCPI);
 
 
         //then
-        Money expected = new Money(BigDecimal.valueOf(2.01), Currency.getInstance("PLN"));
+        Money expected = new Money(BigDecimal.valueOf(100.0), Currency.getInstance("PLN"));
         assertEquals(expected, result);
     }
 }

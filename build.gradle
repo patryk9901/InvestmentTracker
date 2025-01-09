@@ -30,8 +30,17 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.mockito:mockito-core:5.5.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.5.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    testImplementation 'org.wiremock:wiremock:3.9.2'
+    testImplementation "org.assertj:assertj-core:3.24.2"
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'org.apache.commons:commons-lang3:3.17.0'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
 }
+

@@ -1,8 +1,6 @@
 package com.example.investmenttracker.domain;
 
-import com.example.investmenttracker.adapters.gusclient.CPI;
 import com.example.investmenttracker.adapters.gusclient.ConsumerPriceIndex;
-import com.example.investmenttracker.adapters.gusclient.CpiResponse;
 import com.example.investmenttracker.adapters.gusclient.InMemoryCPI;
 import com.example.investmenttracker.adapters.nbpclient.Money;
 import org.apache.commons.lang3.tuple.Pair;
@@ -10,9 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.*;
-import java.util.Calendar;
 import java.util.Currency;
-import java.util.Date;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;

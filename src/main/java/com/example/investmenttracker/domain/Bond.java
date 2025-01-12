@@ -10,10 +10,10 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-
+@lombok.Getter
 @AllArgsConstructor
 public class Bond {
-    private BondSeries bondSeries;
+    private final BondSeries bondSeries;
     private final LocalDate purchaseDate;
 
     public Money getCurrentValue(Clock clock, ConsumerPriceIndex cpiCalculator) {

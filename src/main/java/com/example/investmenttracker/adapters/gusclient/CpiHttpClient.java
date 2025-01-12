@@ -1,8 +1,6 @@
 package com.example.investmenttracker.adapters.gusclient;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -13,7 +11,8 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class XYZ {
+
+public class CpiHttpClient {
     private static final long CPI_TOTAL_ID = 6656078;
     private final HashMap<Integer, BigDecimal> cpiData = new HashMap<>();
 
@@ -47,7 +46,6 @@ public class XYZ {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return cpiData;
     }
 }

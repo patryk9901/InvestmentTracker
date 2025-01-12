@@ -10,7 +10,7 @@ class CPITest {
 
     @Test
     void shouldFetchCPIDataFromAPI() {
-        CpiResponse cpiResponse = new CpiResponse();
+        CpiHttpClient cpiResponse = new CpiHttpClient();
         HashMap<Integer, BigDecimal> cpiData = cpiResponse.fetchCPIData(2020);
 
 
@@ -40,13 +40,12 @@ class CPITest {
         assertTrue(marchCPI.compareTo(BigDecimal.ZERO) > 0, "Wartość CPI dla okresu 249 (marzec) powinna być dodatnia");
 
 
-        BigDecimal expectedJanuaryCPI = new BigDecimal("100.90000");
-        BigDecimal expectedFebruaryCPI = new BigDecimal("100.70000");
-        BigDecimal expectedMarchCPI = new BigDecimal("100.20000");
+        BigDecimal expectedJanuaryCPI = new BigDecimal("104.30000");
+        BigDecimal expectedFebruaryCPI = new BigDecimal("104.70000");
+        BigDecimal expectedMarchCPI = new BigDecimal("104.60000");
 
         assertEquals(expectedJanuaryCPI, januaryCPI, "Wartość CPI dla okresu 247 (styczeń) jest niepoprawna");
         assertEquals(expectedFebruaryCPI, februaryCPI, "Wartość CPI dla okresu 248 (luty) jest niepoprawna");
         assertEquals(expectedMarchCPI, marchCPI, "Wartość CPI dla okresu 249 (marzec) jest niepoprawna");
-
     }
 }

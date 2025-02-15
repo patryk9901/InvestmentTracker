@@ -1,6 +1,7 @@
 package com.example.investmenttracker.adapters.gusclient;
 
 import com.google.gson.Gson;
+import org.springframework.stereotype.Component;
 
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -11,8 +12,8 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-
-public class CpiHttpClient {
+@Component
+public class CpiHttpClient implements ConsumerPriceIndex{
     private static final long CPI_TOTAL_ID = 6656078;
     private final HashMap<Integer, BigDecimal> cpiData = new HashMap<>();
 
@@ -47,5 +48,10 @@ public class CpiHttpClient {
             e.printStackTrace();
         }
         return cpiData;
+    }
+
+    @Override
+    public BigDecimal fromLast12Months(int year, int month) {
+        return null;
     }
 }

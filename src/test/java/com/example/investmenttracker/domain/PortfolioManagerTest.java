@@ -20,6 +20,7 @@ class PortfolioManagerTest {
         //given
         UUID portfolioID = UUID.randomUUID();
 
+
         //when
         portfolioManager.addStock(portfolioID,"ticker","exchange",1);
         portfolioManager.addBond(portfolioID,"EDO1130",1);

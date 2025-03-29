@@ -45,6 +45,7 @@ dependencies {
     testImplementation 'org.mockito:mockito-inline:4.8.1'
     implementation 'com.google.cloud:google-cloud-language:2.36.0'
     implementation 'com.google.cloud:google-cloud-aiplatform:3.37.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
 }
 
 tasks.named('test') {

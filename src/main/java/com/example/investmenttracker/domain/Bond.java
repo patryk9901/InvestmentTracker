@@ -15,7 +15,8 @@ import java.util.*;
 public class Bond {
     private final BondSeries bondSeries;
     private final LocalDate purchaseDate;
-
+    private final Integer quantity;
+//TODO PRZENIESC LOGIKE MNOZENIA BONDSOW Z PORTFOLIO DO BOND
     public Money getCurrentValue(Clock clock, ConsumerPriceIndex cpiCalculator) {
         if (ChronoUnit.DAYS.between(purchaseDate, LocalDate.now(clock)) <= 7) {
             throw new IllegalArgumentException("Przedterminowy wykup możliwy po 7 dniach od zakupu");

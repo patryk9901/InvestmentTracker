@@ -11,6 +11,10 @@ public class InMemoryPortfolioRepository implements PortfolioRepository {
 
     private HashMap<UUID, Portfolio> portfolios;
 
+    public InMemoryPortfolioRepository() {
+        this.portfolios = new HashMap<>();
+    }
+
     @Override
     public Portfolio getPortfolioById(UUID portfolioId) {
         if (portfolios.containsKey(portfolioId)) {
@@ -23,6 +27,7 @@ public class InMemoryPortfolioRepository implements PortfolioRepository {
 
     @Override
     public void savePortfolio(Portfolio portfolio) {
-        portfolios.put(portfolio);
+        UUID portfolioId = portfolio.getPortfolioId();
+        portfolios.put(portfolioId,portfolio);
     }
 }

@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StockPosition {
     private final Money unitPrice;
-    private final int quantity;
+    private final Integer quantity;
     private final Stock stock;
 
     public Money getTotalValue() {

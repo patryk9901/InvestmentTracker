@@ -16,7 +16,7 @@ public class Bond {
     private final BondSeries bondSeries;
     private final LocalDate purchaseDate;
     private final Integer quantity;
-//TODO PRZENIESC LOGIKE MNOZENIA BONDSOW Z PORTFOLIO DO BOND
+
     public Money getCurrentValue(Clock clock, ConsumerPriceIndex cpiCalculator) {
         if (ChronoUnit.DAYS.between(purchaseDate, LocalDate.now(clock)) <= 7) {
             throw new IllegalArgumentException("Przedterminowy wykup możliwy po 7 dniach od zakupu");
@@ -28,22 +28,22 @@ public class Bond {
 
         BigDecimal result = calculateValue(currentPeriod, cpiCalculator, clock);
 
-        if (result.compareTo(bondSeries.unitPrice.getAmount()) < 0) {
-            return bondSeries.unitPrice;
+        if (result.compareTo(bondSeries.unitPrice.getAmount().multiply(BigDecimal.valueOf(quantity))) < 0) {
+            return bondSeries.unitPrice.multiply(BigDecimal.valueOf(quantity));
         }
         return new Money(result, Currency.getInstance("PLN"));
     }
 
     public Money earlyRedemptionValue(Clock clock, ConsumerPriceIndex cpiCalculator) {
         Money valueOfBond = getCurrentValue(clock, cpiCalculator);
-        Money interest = valueOfBond.subtract(bondSeries.unitPrice);
+        Money interest = valueOfBond.subtract(bondSeries.unitPrice.multiply(quantity));
 
 
-        if(interest.compareTo(bondSeries.earlyRedemptionPrice) < 0) {
-            return bondSeries.unitPrice;
+        if(interest.compareTo(bondSeries.earlyRedemptionPrice.multiply(quantity)) < 0) {
+            return bondSeries.unitPrice.multiply(BigDecimal.valueOf(quantity));
         }
-        interest = interest.subtract(bondSeries.earlyRedemptionPrice);
-        return bondSeries.unitPrice.add(interest);
+        interest = interest.subtract(bondSeries.earlyRedemptionPrice.multiply(quantity));
+        return bondSeries.unitPrice.multiply(quantity).add(interest);
     }
 
     private BigDecimal calculateValue(int currentPeriod, ConsumerPriceIndex cpiCalculator, Clock clock) {
@@ -68,6 +68,8 @@ public class Bond {
         for (int i = 0; i < currentPeriod; i++) {
             value = value.multiply(BigDecimal.ONE.add(interestRates.get(i)));
         }
+
+        value = value.multiply(BigDecimal.valueOf(quantity));
 
         if (daysFromPeriodStart > 0) {
             BigDecimal partialRate = interestRates.get(currentPeriod)

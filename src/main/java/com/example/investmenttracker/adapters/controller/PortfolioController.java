@@ -6,6 +6,8 @@ import com.example.investmenttracker.domain.BondSeries;
 import com.example.investmenttracker.domain.Portfolio;
 import com.example.investmenttracker.domain.PortfolioRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -45,15 +47,25 @@ public class PortfolioController {
         return portfolioResponse.from(portfolioById);
     }
 
+
     @PostMapping(value = "/portfolio")
     //uzytkownik podaje imie(nazwa portfolio)
     //tworzymy obiekt portfolio i zapisujemy go do hashmapy(imie znajduje sie w portfolio)
     //zwracamy http 201 i id portfolio ktore utworzyl
+    //walidacja request'a
 
-    public createPortfolioResponse createPortfolio(@RequestBody createPortfolioRequest createPortfolioRequest) {
+    public ResponseEntity<createPortfolioResponse> createPortfolio(@RequestBody createPortfolioRequest createPortfolioRequest) {
         Portfolio newPortfolio = Portfolio.create(createPortfolioRequest.portfolioName);
         inMemoryPortfolioRepository.savePortfolio(newPortfolio);
-        return new createPortfolioResponse(newPortfolio.getPortfolioId().toString());
+        return ResponseEntity.status(HttpStatus.CREATED).body(new createPortfolioResponse(newPortfolio.getPortfolioId().toString()));
+    }
+
+    public record addBondRequest(UUID portfolioID){}
+    @PostMapping(value = "/portfolio")
+    public ResponseEntity<Void> addBond(@RequestBody addBondRequest addBondRequest) {
+        Portfolio portfolio = inMemoryPortfolioRepository.getPortfolioById(addBondRequest.portfolioID);
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
 }

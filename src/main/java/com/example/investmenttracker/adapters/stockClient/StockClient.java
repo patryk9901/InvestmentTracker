@@ -1,7 +1,8 @@
 package com.example.investmenttracker.adapters.stockClient;
 
+import com.example.investmenttracker.adapters.nbpclient.Money;
 import com.example.investmenttracker.domain.Stock;
 
 public interface StockClient {
-    public double getLatestPrice(Stock stock);
+     Money getLatestPrice(Stock stock);
 }
